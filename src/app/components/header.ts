@@ -38,7 +38,6 @@ import {JsonPipe} from '@angular/common';
         }
       </div>
 
-      <pre>{{ userService.user() | json }}</pre>
 
     </header>
   `,

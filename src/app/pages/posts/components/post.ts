@@ -15,7 +15,7 @@ import {PostInterface} from '../../../interfaces/post.interface';
     <div class=" mt-2 w-full bg-white ">
     <app-post-author [dateCreated]="post()" [author]="post().author"/>
     <app-post-article [post] = "post()"/>
-    <app-post-interaction (buttonClick)="handleEvent()"/>
+    <app-post-interaction [post] = "post()" (likeClick)="this.likeClicked.emit()" (buttonClick)="handleEvent()"/>
     </div>
   `,
   styles: ``
@@ -25,8 +25,8 @@ export class Post {
 
   buttonClicked = output<void>();
 
+  likeClicked = output<void>();
   handleEvent() {
-    console.log('Event reçu dans Post → Ouverture des commentaires');
     this.buttonClicked.emit();
   }
 

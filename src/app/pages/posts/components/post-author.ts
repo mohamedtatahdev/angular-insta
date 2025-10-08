@@ -3,12 +3,14 @@ import {Author, PostInterface} from '../../../interfaces/post.interface';
 import {FaIconLibrary, FontAwesomeModule} from '@fortawesome/angular-fontawesome';
 import {fontAwesomeIcons} from '../../../shared/font-awesome-icons';
 import {TimeAgoPipe} from '../../../shared/pipes/time-ago-pipe';
+import {RouterLink} from '@angular/router';
+import {PostService} from '../../../services/post.service';
 
 @Component({
   selector: 'app-post-author',
   imports: [
     FontAwesomeModule,
-
+    RouterLink,
     TimeAgoPipe
 
   ],
@@ -18,7 +20,7 @@ import {TimeAgoPipe} from '../../../shared/pipes/time-ago-pipe';
 
 
         <div class="flex flex-col">
-          <p class="text-lg">{{ author().username}}</p>
+          <a [routerLink]="['/posts/user', author().id]" (click)="openUserPosts(author().id)" class="text-lg">{{ author().username}}</a>
           <span class="text-xs text-gray-700">{{dateCreated().createdAt | timeAgo }}</span>
         </div>
       </div>
@@ -33,6 +35,7 @@ export class PostAuthor implements OnInit {
   author = input.required<Author>();
   dateCreated = input.required<PostInterface>();
   private faIconeLibrary = inject(FaIconLibrary);
+  private postService = inject(PostService);
 
 
   ngOnInit(): void {
@@ -42,5 +45,14 @@ export class PostAuthor implements OnInit {
   initFontAwesome() {
     this.faIconeLibrary.addIcons(...fontAwesomeIcons);
   }
+
+
+  openUserPosts(userId: number) {
+    this.postService.page.set(0);
+    this.postService.allPosts.set([]);
+    this.postService.userId.set(userId); // <-- important
+    this.postService.postResourceByUser.reload();
+  }
+
 
 }

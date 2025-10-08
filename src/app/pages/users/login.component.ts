@@ -64,14 +64,17 @@ export class LoginComponent {
   }
 
   submit() {
-    if (this.loginForm.valid) {
-      this.userService.login(this.loginForm.getRawValue()).subscribe({
-        next: () => this.router.navigate(['/']),
-        error: (err) => console.error('❌ Erreur login', err)
-      });
-    } else {
-      this.loginForm.markAllAsTouched();
-    }
+    this.userService.login(this.loginForm.getRawValue()).subscribe({
+      next: (user) => {
+        console.log('Utilisateur connecté', user);
+        this.router.navigate(['/']); // redirection après login
+      },
+      error: (err) => {
+        console.error('Erreur login', err);
+        console.log(this.loginForm.getRawValue());
+        alert('Email ou mot de passe incorrect'); // message à l’utilisateur
+      }
+    });
   }
 
 

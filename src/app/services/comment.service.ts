@@ -30,9 +30,11 @@ export class CommentService {
   commentResource = resource({
     params: () => ({ id: this.pictureId() }),
     loader: async (params) => {
-
-
-      return (await fetch(`${this.BASE_URL}/picture/${this.pictureId()}/comment`)).json();
+      if (this.pictureId() === null) {
+        return null;
+      } else {
+        return (await fetch(`${this.BASE_URL}/picture/${this.pictureId()}/comment`)).json();
+      }
     },
   })
 

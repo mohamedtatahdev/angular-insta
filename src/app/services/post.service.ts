@@ -1,7 +1,6 @@
 import {effect, inject, Injectable, resource, signal} from '@angular/core';
 import {PaginatedPostsResponse} from '../interfaces/paginated.interface';
 import {PostInterface, PostRequest} from '../interfaces/post.interface';
-import {CommentInterface} from '../interfaces/comment.interface';
 import {HttpClient} from '@angular/common/http';
 
 @Injectable({
@@ -11,24 +10,41 @@ export class PostService {
   BASE_URL = 'http://localhost:8080/api/picture'
   private readonly http = inject(HttpClient);
 
-
+  pictureId = signal(0);
+  userId = signal(0);
   page = signal(0);
   size = signal(5);
   allPosts = signal<PostInterface[]>([]);
 
+  postResourceByUser = resource({
+    params: () => ({ page: this.page(), size: this.size(), userId: this.userId() }),
+    loader: async () =>
+      (await fetch(`${this.BASE_URL}/user/${this.userId()}?pageNumber=${this.page()}&pageSize=${this.size()}`)).json(),
+  });
 
   postResource = resource({
     params: () => ({ page: this.page(), size: this.size() }),
-
     loader: async (): Promise<PaginatedPostsResponse> =>
       (await fetch(`${this.BASE_URL}?pageNumber=${this.page()}&pageSize=${this.size()}`)).json(),
   })
 
+  postResourceUnique = resource({
+    params: () => ({ pictureId: this.pictureId() }),
+    loader: async () => {
+      return (await fetch(`${this.BASE_URL}/${this.pictureId()}`)).json();
+    }
+  })
+
   constructor() {
     effect(() => {
-      const response = this.postResource.value();
+      const response = this.userId() ? this.postResourceByUser.value() : this.postResource.value();
+
       if (response?.content) {
-        this.allPosts.update(current => [...current, ...response.content]);
+        if (this.page() === 0) {
+          this.allPosts.set([...response.content]);
+        } else {
+          this.allPosts.update(current => [...current, ...response.content]);
+        }
       }
     });
   }
@@ -39,8 +55,23 @@ export class PostService {
 
   reset() {
     this.page.set(0);
+    this.userId.set(0);
     this.allPosts.set([]);
-    this.postResource.reload();
+  }
+
+  // ✅ NOUVELLE MÉTHODE pour charger les posts d'un utilisateur
+  setUser(userId: number) {
+    this.userId.set(userId);
+    this.page.set(0);
+    this.allPosts.set([]);
+    // Le changement de userId et page va automatiquement déclencher le rechargement
+  }
+
+  // ✅ NOUVELLE MÉTHODE pour revenir à tous les posts
+  loadAllPosts() {
+    this.userId.set(0);
+    this.page.set(0);
+    this.allPosts.set([]);
   }
 
   addPost(data: PostRequest) {
@@ -49,7 +80,6 @@ export class PostService {
     return this.http.post<PostInterface>(
       `${this.BASE_URL}`,
       data,
-
       {
         headers: {
           'Authorization': `Basic ${token}`,
@@ -75,8 +105,4 @@ export class PostService {
       }
     );
   }
-
-
-
-
 }

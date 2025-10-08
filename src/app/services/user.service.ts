@@ -17,7 +17,6 @@ private readonly router = inject(Router);
   BASE_URL = 'http://localhost:8080/api'
 
   constructor() {
-    console.log('🟢 Nouvelle instance de UserService créée');
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       this.user.set(JSON.parse(storedUser));
@@ -30,20 +29,26 @@ private readonly router = inject(Router);
   login(credentials: { email: string, password: string }) {
     const basicToken = btoa(`${credentials.email}:${credentials.password}`);
 
-    return this.http.get<User>(`${this.BASE_URL}/account`, {
-      headers: { 'Authorization': `Basic ${basicToken}` },
-      withCredentials: true
-    }).pipe(
-      tap(response => {
-        localStorage.setItem('user', JSON.stringify(response));
-        this.user.set(response);
-        this.router.navigate(['/']).then(() => {
-          window.location.reload();
-        });
-
+    return new Observable<User>((observer) => {
+      fetch(`${this.BASE_URL}/account`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${basicToken}`,
+        },
+        credentials: 'include'
       })
-    );
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Identifiants invalides');
+          const user = await res.json();
+          localStorage.setItem('user', JSON.stringify(user));
+          this.user.set(user);
+          observer.next(user);
+          observer.complete();
+        })
+        .catch((err) => observer.error(err));
+    });
   }
+
 
 
 

@@ -61,7 +61,10 @@ export class OverlayComments {
   private commentService = inject(CommentService);
   private userService = inject(UserService);
   readonly fb = inject(FormBuilder).nonNullable;
-  protected comments = computed(() => this.commentService.commentResource.value() ?? []);
+  protected comments = computed(() => {
+    const value = this.commentService.commentResource.value();
+    return Array.isArray(value) ? value : [];
+  });
 
 
 
@@ -70,11 +73,7 @@ export class OverlayComments {
 
   })
 
-  constructor() {
-    effect(() => {
-      console.log('Commentaires reçus :', this.comments());
-    });
-  }
+
 
   isFieldValid(name:string) {
     const formControl = this.commentForm.get(name);
@@ -108,15 +107,10 @@ export class OverlayComments {
 
       this.commentService.addComment(data).subscribe({
         next: (res) => {
-          console.log('Commentaire ajouté ✅', res);
-
-          // ✅ Recharge la liste de commentaires
           this.commentService.commentResource.reload();
-
-          // ✅ Optionnel : vider le champ
           this.commentForm.reset();
         },
-        error: (err) => console.error('Erreur API ❌', err)
+        error: (err) => console.error('Erreur API ', err)
       });
     } else {
       this.commentForm.markAllAsTouched();

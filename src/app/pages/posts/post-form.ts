@@ -71,7 +71,7 @@ export class PostForm {
 
   submit() {
     if (!this.selectedFile) {
-      console.error("Aucune image sélectionnée ❌");
+      console.error("Aucune image sélectionnée ");
       return;
     }
 
@@ -79,7 +79,7 @@ export class PostForm {
       // Étape 1 : uploader l'image
       this.postService.uploadImage(this.selectedFile).subscribe({
         next: (res) => {
-          console.log('Image uploadée ✅', res.filename);
+          console.log('Image uploadée ', res.filename);
 
           const data: PostRequest = {
             image: res.filename,
@@ -88,11 +88,11 @@ export class PostForm {
           };
 
           this.postService.addPost(data).subscribe({
-            next: () => console.log('Post créé avec succès ✅'),
-            error: (err) => console.error('Erreur création post ❌', err),
+            next: () => console.log('Post créé avec succès '),
+            error: (err) => console.error('Erreur création post ', err),
           });
         },
-        error: (err) => console.error('Erreur upload image ❌', err),
+        error: (err) => console.error('Erreur upload image ', err),
       });
     } else {
       this.postForm.markAllAsTouched();
